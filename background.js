@@ -3,7 +3,7 @@ import gistApi from './gist.js';
 // 初始化变量
 let isAutoSyncEnabled = false;
 let syncTimeout = null;  // 新增：同步防抖定时器
-const SYNC_DELAY = 60 * 1000; // 1分钟
+const SYNC_DELAY = 30 * 1000; // 30秒
 
 // 初始化时加载自动同步设置
 async function initAutoSync() {
