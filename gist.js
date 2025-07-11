@@ -136,26 +136,39 @@ const gistApi = {
     const flatLocal = this.flattenBookmarks(localBookmarks);
     const flatCloud = this.flattenBookmarks(cloudBookmarks);
 
-    const makeKey = b => `${b.path}/${b.title}|${b.url}`;
-    const localMap = new Map(flatLocal.map(b => [makeKey(b), b]));
-    const cloudMap = new Map(flatCloud.map(b => [makeKey(b), b]));
-
-    // 新增
-    const added = flatLocal.filter(local => !cloudMap.has(makeKey(local)));
-    // 删除
-    const deleted = flatCloud.filter(cloud => !localMap.has(makeKey(cloud)));
-    // 移动
+    // 先找出所有“移动”的书签（url 和 title 相同，但 path 不同）
     const moved = [];
+    const movedKeysLocal = new Set();
+    const movedKeysCloud = new Set();
+
     flatLocal.forEach(local => {
-      const cloud = flatCloud.find(c => c.url === local.url && c.title === local.title && c.path !== local.path);
+      const cloud = flatCloud.find(
+        c => c.url === local.url && c.title === local.title && c.path !== local.path
+      );
       if (cloud) {
         moved.push({
           bookmark: local,
           oldPath: cloud.path,
           newPath: local.path
         });
+        movedKeysLocal.add(`${local.path}/${local.title}|${local.url}`);
+        movedKeysCloud.add(`${cloud.path}/${cloud.title}|${cloud.url}`);
       }
     });
+
+    // 新增：本地有、云端没有，且不是“移动”过来的
+    const cloudMap = new Map(flatCloud.map(b => [`${b.path}/${b.title}|${b.url}`, b]));
+    const added = flatLocal.filter(local =>
+      !cloudMap.has(`${local.path}/${local.title}|${local.url}`) &&
+      !movedKeysLocal.has(`${local.path}/${local.title}|${local.url}`)
+    );
+
+    // 删除：云端有、本地没有，且不是“移动”过去的
+    const localMap = new Map(flatLocal.map(b => [`${b.path}/${b.title}|${b.url}`, b]));
+    const deleted = flatCloud.filter(cloud =>
+      !localMap.has(`${cloud.path}/${cloud.title}|${cloud.url}`) &&
+      !movedKeysCloud.has(`${cloud.path}/${cloud.title}|${cloud.url}`)
+    );
 
     // 文件夹结构变化（可选保留）
     const localFolders = new Set(flatLocal.map(item => item.path.split('/').slice(0, -1).join('/')).filter(Boolean));
