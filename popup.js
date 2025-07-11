@@ -43,11 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // 更新同步状态显示
     updateSyncStatus(!!settings.githubToken);
-    
-    // 显示临时成功提示
-    syncSuccess.textContent = autoSync ? '自动同步已开启' : '自动同步已关闭';
-    syncSuccess.style.display = 'block';
-    setTimeout(() => syncSuccess.style.display = 'none', 2000);
   });
 
   // 更新统计信息
@@ -273,17 +268,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 对比书签
-  compareBtn.addEventListener('click', async () => {
+  // 对比书签（自动触发，无需按钮）
+  async function autoCompareBookmarks() {
     if (!settings.githubToken || !settings.gistId) {
       diffError.textContent = '请先配置 GitHub Token 和完成一次同步';
       diffError.style.display = 'block';
       return;
     }
-
     try {
       diffError.style.display = 'none';
-      compareBtn.disabled = true;
       diffContent.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">
@@ -294,25 +287,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           <p class="empty-text">正在对比书签...</p>
         </div>
       `;
-
       // 获取本地和云端书签
       const [localBookmarks, cloudBookmarks] = await Promise.all([
         chrome.bookmarks.getTree(),
         gistApi.downloadBookmarks(settings.githubToken, settings.gistId)
       ]);
-
       // 比较书签
       const diff = gistApi.compareBookmarks(localBookmarks, cloudBookmarks);
-      console.log('对比结果:', diff);
-      
       // 更新差异计数
       document.getElementById('addedCount').textContent = `新增: ${diff.added.length}`;
       document.getElementById('deletedCount').textContent = `删除: ${diff.deleted.length}`;
-      document.getElementById('modifiedCount').textContent = `修改: ${diff.modified.length}`;
       document.getElementById('movedCount').textContent = `移动: ${diff.moved ? diff.moved.length : 0}`;
-
       // 显示差异
-      if (diff.added.length === 0 && diff.deleted.length === 0 && diff.modified.length === 0 && (!diff.moved || diff.moved.length === 0)) {
+      if (diff.added.length === 0 && diff.deleted.length === 0 && (!diff.moved || diff.moved.length === 0)) {
         diffContent.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">
@@ -325,31 +312,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         return;
       }
-
       let html = '';
-
       // 添加的书签
       diff.added.forEach(bookmark => {
         html += createDiffItem('added', '+', bookmark.title, bookmark.path, {
           local: bookmark.url
         });
       });
-
       // 删除的书签
       diff.deleted.forEach(bookmark => {
         html += createDiffItem('deleted', '-', bookmark.title, bookmark.path, {
           cloud: bookmark.url
         });
       });
-
-      // 修改的书签
-      diff.modified.forEach(({ local, cloud, changes }) => {
-        html += createDiffItem('modified', 'M', local.title, local.path, {
-          local: local.url,
-          cloud: cloud.url
-        }, { local, cloud, changes });
-      });
-
       // 移动的书签
       if (diff.moved && diff.moved.length > 0) {
         diff.moved.forEach(({ bookmark, oldPath, newPath }) => {
@@ -358,9 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }, { oldPath, newPath });
         });
       }
-
       diffContent.innerHTML = html;
-
       // 添加点击展开/收起事件
       document.querySelectorAll('.diff-item-header').forEach(header => {
         header.addEventListener('click', () => {
@@ -368,16 +341,22 @@ document.addEventListener('DOMContentLoaded', async () => {
           item.classList.toggle('expanded');
         });
       });
-
     } catch (error) {
       diffError.textContent = `对比失败: ${error.message}`;
       diffError.style.display = 'block';
       diffContent.innerHTML = '';
       console.error('对比失败:', error);
-    } finally {
-      compareBtn.disabled = false;
     }
-  });
+  }
+
+  // 页面加载时自动对比
+  if (document.querySelector('.nav-item[data-panel="diff"]')) {
+    document.querySelector('.nav-item[data-panel="diff"]').addEventListener('click', autoCompareBookmarks);
+  }
+  // 如果初始就是对比面板，也自动对比
+  if (document.querySelector('.nav-item.active[data-panel="diff"]')) {
+    autoCompareBookmarks();
+  }
 
   // 创建差异项目的 HTML
   function createDiffItem(type, badge, title, path, urls, details = {}) {

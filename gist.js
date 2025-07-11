@@ -109,15 +109,14 @@ const gistApi = {
     }
   },
 
-  // 将书签树转换为扁平结构
+  // 将书签树转换为扁平结构，key 用于唯一标识
   flattenBookmarks(bookmarkNodes, path = '') {
     const bookmarks = [];
-    const self = this;
-    
     function traverse(node, currentPath) {
       if (node.url) {
+        const key = `${currentPath}/${node.title}|${node.url}`;
         bookmarks.push({
-          id: node.id,
+          key,
           title: node.title,
           url: node.url,
           path: currentPath,
@@ -128,112 +127,46 @@ const gistApi = {
         node.children.forEach(child => traverse(child, newPath));
       }
     }
-
     bookmarkNodes.forEach(node => traverse(node, path));
     return bookmarks;
   },
 
-  // 比较本地和云端书签
+  // 比较本地和云端书签，只判断新增、删除、移动
   compareBookmarks(localBookmarks, cloudBookmarks) {
     const flatLocal = this.flattenBookmarks(localBookmarks);
     const flatCloud = this.flattenBookmarks(cloudBookmarks);
 
-    const added = [];
-    const deleted = [];
-    const modified = [];
+    const makeKey = b => `${b.path}/${b.title}|${b.url}`;
+    const localMap = new Map(flatLocal.map(b => [makeKey(b), b]));
+    const cloudMap = new Map(flatCloud.map(b => [makeKey(b), b]));
+
+    // 新增
+    const added = flatLocal.filter(local => !cloudMap.has(makeKey(local)));
+    // 删除
+    const deleted = flatCloud.filter(cloud => !localMap.has(makeKey(cloud)));
+    // 移动
     const moved = [];
-
-    // 创建映射：ID -> 书签
-    const localMap = new Map();
-    flatLocal.forEach(bookmark => {
-      localMap.set(bookmark.id, bookmark);
-    });
-
-    const cloudMap = new Map();
-    flatCloud.forEach(bookmark => {
-      cloudMap.set(bookmark.id, bookmark);
-    });
-
-    // 1. 查找新增和修改的书签
     flatLocal.forEach(local => {
-      const cloud = cloudMap.get(local.id);
-      if (!cloud) {
-        // ID 不存在于云端，认为是新增的
-        added.push(local);
-      } else {
-        // 检查是否有修改
-        const isModified = cloud.url !== local.url || cloud.title !== local.title;
-        // 检查是否移动了位置
-        const isMoved = cloud.path !== local.path;
-        
-        if (isModified && isMoved) {
-          // 既修改了内容又移动了位置
-          modified.push({
-            local,
-            cloud,
-            changes: {
-              title: cloud.title !== local.title,
-              url: cloud.url !== local.url,
-              moved: true,
-              oldPath: cloud.path,
-              newPath: local.path
-            }
-          });
-        } else if (isModified) {
-          // 仅修改了内容
-          modified.push({
-            local,
-            cloud,
-            changes: {
-              title: cloud.title !== local.title,
-              url: cloud.url !== local.url,
-              moved: false
-            }
-          });
-        } else if (isMoved) {
-          // 仅移动了位置
-          moved.push({
-            bookmark: local,
-            oldPath: cloud.path,
-            newPath: local.path
-          });
-        }
+      const cloud = flatCloud.find(c => c.url === local.url && c.title === local.title && c.path !== local.path);
+      if (cloud) {
+        moved.push({
+          bookmark: local,
+          oldPath: cloud.path,
+          newPath: local.path
+        });
       }
     });
 
-    // 2. 查找删除的书签
-    flatCloud.forEach(cloud => {
-      console.log('cloud', cloud);
-      if (!localMap.has(cloud.id)) {
-        // ID 不存在于本地，认为是删除的
-        deleted.push(cloud);
-      }
-    });
-
-    // 3. 检查文件夹结构变化（通过路径分析）
+    // 文件夹结构变化（可选保留）
     const localFolders = new Set(flatLocal.map(item => item.path.split('/').slice(0, -1).join('/')).filter(Boolean));
     const cloudFolders = new Set(flatCloud.map(item => item.path.split('/').slice(0, -1).join('/')).filter(Boolean));
-    
     const addedFolders = [...localFolders].filter(folder => !cloudFolders.has(folder));
     const removedFolders = [...cloudFolders].filter(folder => !localFolders.has(folder));
+    const structureChanges = { addedFolders, removedFolders };
 
-    const structureChanges = {
-      addedFolders,
-      removedFolders
-    };
-
-    console.log('对比结果:', { 
-      added, 
-      deleted, 
-      modified,
-      moved,
-      structureChanges 
-    });
-    
     return {
       added,
       deleted,
-      modified,
       moved,
       structureChanges
     };
