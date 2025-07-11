@@ -423,18 +423,19 @@
       top: 30px;
       left: 50%;
       transform: translateX(-50%);
-      min-width: 240px;
-      max-width: 80vw;
+      min-width: 140px;
+      max-width: 60vw;
       z-index: 9999;
-      padding: 16px 32px;
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      font-size: 16px;
+      padding: 8px 18px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      font-size: 13px;
       text-align: center;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s, top 0.3s;
       display: block;
+      padding-right: 28px; /* 给关闭按钮留空间 */
     }
 
     .alert.show {
@@ -453,6 +454,21 @@
       background-color: #ffeded;
       color: #d32f2f;
       border: 1px solid #f8bcbc;
+    }
+
+    .alert-close {
+      position: absolute;
+      right: 10px;
+      top: 6px;
+      font-size: 16px;
+      color: #888;
+      z-index: 99999;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.2s;
+    }
+    .alert-close:hover {
+      color: #333;
     }
 
 
@@ -942,8 +958,8 @@
           </div>
         </div>
         
-        <div id="syncError" class="alert alert-danger"></div>
-        <div id="syncSuccess" class="alert alert-success"></div>
+        <div id="syncError" class="alert alert-danger"><span class="alert-close" data-target="syncError">&times;</span><span class="alert-message"></span></div>
+        <div id="syncSuccess" class="alert alert-success"><span class="alert-close" data-target="syncSuccess">&times;</span><span class="alert-message"></span></div>
       </div>
 
       <!-- 对比面板 -->

@@ -3,7 +3,10 @@ import gistApi from './gist.js';
 // 在文件顶部添加 showToast 函数，使其为全局可用
 function showToast(type, message) {
   const el = document.getElementById(type === 'success' ? 'syncSuccess' : 'syncError');
-  el.textContent = message;
+  const msgSpan = el.querySelector('.alert-message');
+  if (msgSpan) {
+    msgSpan.textContent = message;
+  }
   el.classList.add('show');
   setTimeout(() => {
     el.classList.remove('show');
@@ -11,6 +14,15 @@ function showToast(type, message) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  document.querySelectorAll('.alert-close').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const target = btn.getAttribute('data-target');
+      if (target) {
+        const el = document.getElementById(target);
+        if (el) el.classList.remove('show');
+      }
+    });
+  });
   // 获取 DOM 元素
   const uploadBtn = document.getElementById('uploadBookmarks');
   const downloadBtn = document.getElementById('downloadBookmarks');
@@ -19,12 +31,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const gistInput = document.getElementById('gistInput');
   const settingsError = document.getElementById('settingsError');
   const settingsSuccess = document.getElementById('settingsSuccess');
-  const syncError = document.getElementById('syncError');
-  const syncSuccess = document.getElementById('syncSuccess');
   const clearLogsBtn = document.getElementById('clearLogs');
   const logContainer = document.getElementById('logContainer');
   const syncStatus = document.getElementById('syncStatus');
-  const compareBtn = document.getElementById('compareBookmarks');
   const diffContent = document.getElementById('diffContent');
   const diffError = document.getElementById('diffError');
   const autoSyncToggle = document.getElementById('autoSyncToggle');
