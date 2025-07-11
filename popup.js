@@ -2,7 +2,7 @@ import gistApi from './gist.js';
 
 // 在文件顶部添加 showToast 函数，使其为全局可用
 function showToast(type, message) {
-  const el = document.getElementById(type === 'success' ? 'syncSuccess' : 'syncError');
+  const el = document.getElementById(type === 'success' ? 'SuccessBox' : 'ErrorBox');
   const msgSpan = el.querySelector('.alert-message');
   if (msgSpan) {
     msgSpan.textContent = message;
@@ -34,6 +34,17 @@ function showToast(type, message) {
   }, 3000);
 }
 
+// 加载中动画 SVG
+const loadingSvg = `
+  <span class="icon loading-spinner" style="display:inline-block;vertical-align:middle;">
+    <svg width="18" height="18" viewBox="0 0 50 50">
+      <circle cx="25" cy="25" r="20" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-dasharray="31.4 31.4" transform="rotate(-90 25 25)">
+        <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  </span>
+`;
+
 document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.alert-close').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -50,8 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveSettingsBtn = document.getElementById('saveSettings');
   const tokenInput = document.getElementById('tokenInput');
   const gistInput = document.getElementById('gistInput');
-  const settingsError = document.getElementById('settingsError');
-  const settingsSuccess = document.getElementById('settingsSuccess');
   const clearLogsBtn = document.getElementById('clearLogs');
   const logContainer = document.getElementById('logContainer');
   const syncStatus = document.getElementById('syncStatus');
@@ -190,10 +199,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const gistId = gistInput.value.trim();
 
     if (!token) {
-      settingsError.textContent = '请输入 GitHub Token';
-      settingsError.style.display = 'block';
+      showToast('error', '请输入 GitHub Token');
       return;
     }
+
+    // 禁用按钮并提示保存中
+    saveSettingsBtn.disabled = true;
+    const originalText = saveSettingsBtn.innerHTML;
+    saveSettingsBtn.innerHTML = `${loadingSvg} 保存中...`;
 
     try {
       // 验证 token
@@ -201,32 +214,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!isValid) {
         throw new Error('无效的 GitHub Token');
       }
-
       // 保存设置
       await chrome.storage.local.set({ githubToken: token, gistId });
       settings = { githubToken: token, gistId };
-      
-      settingsSuccess.textContent = '设置已保存';
-      settingsSuccess.style.display = 'block';
-      settingsError.style.display = 'none';
+      showToast('success', '设置已保存');
       updateSyncStatus(true);
-      
       setTimeout(() => {
-        settingsSuccess.style.display = 'none';
         // 保存成功后切换回首页
         const homeNavItem = document.querySelector('.nav-item[data-panel="sync"]');
         if (homeNavItem) {
           homeNavItem.click();
         }
       }, 2000);
-
       // 更新统计信息
       await updateStats();
     } catch (error) {
-      settingsError.textContent = error.message;
-      settingsError.style.display = 'block';
-      settingsSuccess.style.display = 'none';
+      let msg = error.message ? error.message : error.toString();
+      showToast('error', msg);
       updateSyncStatus(false);
+
+    } finally {
+      // 恢复按钮状态
+      saveSettingsBtn.disabled = false;
+      saveSettingsBtn.innerHTML = originalText;
     }
   });
 

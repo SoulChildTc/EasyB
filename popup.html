@@ -22,6 +22,9 @@
       </div>
     </div>
 
+    <div id="ErrorBox" class="alert alert-danger"><span class="alert-close" data-target="ErrorBox">&times;</span><span class="alert-message"></span></div>
+    <div id="SuccessBox" class="alert alert-success"><span class="alert-close" data-target="SuccessBox">&times;</span><span class="alert-message"></span></div>
+    
     <div class="app-nav">
       <div class="nav-item active" data-panel="sync">首页</div>
       <div class="nav-item" data-panel="diff">对比</div>
@@ -102,9 +105,6 @@
             </label>
           </div>
         </div>
-        
-        <div id="syncError" class="alert alert-danger"><span class="alert-close" data-target="syncError">&times;</span><span class="alert-message"></span></div>
-        <div id="syncSuccess" class="alert alert-success"><span class="alert-close" data-target="syncSuccess">&times;</span><span class="alert-message"></span></div>
       </div>
 
       <!-- 对比面板 -->
@@ -198,8 +198,6 @@
                 保存设置
               </button>
             </div>
-            <div id="settingsError" class="alert alert-danger"></div>
-            <div id="settingsSuccess" class="alert alert-success"></div>
           </div>
         </div>
       </div>

@@ -3,14 +3,23 @@ const gistApi = {
   // 验证 GitHub Token
   async validateToken(token) {
     try {
+      // 增加超时控制
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000); // 5秒超时
       const response = await fetch('https://api.github.com/user', {
         headers: {
           'Authorization': `token ${token}`,
           'Accept': 'application/vnd.github.v3+json'
-        }
+        },
+        signal: controller.signal
       });
+      clearTimeout(timeout);
       return response.ok;
     } catch (error) {
+      // 如果是超时导致的 abort，给出特殊提示
+      if (error.name === 'AbortError') {
+        throw new Error('请求超时，请检查网络或稍后重试');
+      }
       return false;
     }
   },

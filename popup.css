@@ -844,6 +844,13 @@ body {
   height: 100%;
 }
 
+.icon.loading-spinner svg {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
 /* 空状态 */
 .empty-state {
   display: flex;
@@ -892,4 +899,24 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
+} 
+
+.btn-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+#settingsPanel .btn-group .btn-primary {
+  width: 100%;
+  max-width: 260px;
+  min-width: 180px;
+  margin: 0 auto;
+  display: block;
+} 
+
+#settingsPanel .btn-group .btn-primary .icon:not(.loading-spinner) {
+  position: relative;
+  top: 3px;
 } 
