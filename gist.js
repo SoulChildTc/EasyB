@@ -20,7 +20,7 @@ const gistApi = {
     // 保留完整的书签树结构，包括 ID
     const content = JSON.stringify(bookmarks, null, 2);
     const description = 'EasyB 书签同步数据';
-    const filename = 'bookmarks.json';
+    const filename = 'easyb.json';
 
     const headers = {
       'Authorization': `token ${token}`,
@@ -106,7 +106,7 @@ const gistApi = {
       }
 
       const data = await response.json();
-      const filename = Object.keys(data.files).find(name => name === 'bookmarks.json');
+      const filename = Object.keys(data.files).find(name => name === 'easyb.json');
       
       if (!filename) {
         throw new Error('未找到书签数据文件');
