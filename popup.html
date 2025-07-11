@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary: #4f46e5;
+      --color-primary-light: #6366f1;
+      --color-primary-dark: #4338ca;
+      --color-success: #10b981;
+      --color-success-light: #d1fae5;
+      --color-danger: #ef4444;
+      --color-danger-light: #fee2e2;
+      --color-warning: #f59e0b;
+      --color-warning-light: #fef3c7;
+      --color-neutral: #6366f1;
+      --color-neutral-light: #e0e7ff;
+      --color-bg: #ffffff;
+      --color-bg-offset: #f8fafc;
+      --color-text: #0f172a;
+      --color-text-secondary: #64748b;
+      --color-border: #e2e8f0;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      --transition: all 0.2s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 300px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+    }
+
+    .app-header {
+      display: flex;
+      flex-direction: column;
+      padding: 16px 16px 0;
+      background-color: var(--color-bg);
+    }
+
+    .app-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .app-logo {
+      width: 24px;
+      height: 24px;
+    }
+
+    .app-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 16px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .app-status.active {
+      background-color: var(--color-success-light);
+      color: var(--color-success);
+    }
+
+    .app-status.inactive {
+      background-color: var(--color-danger-light);
+      color: var(--color-danger);
+    }
+
+    .app-status.semi-active {
+      background-color: var(--color-warning-light);
+      color: var(--color-warning);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-dot.active {
+      background-color: var(--color-success);
+    }
+
+    .status-dot.inactive {
+      background-color: var(--color-danger);
+    }
+
+    .status-dot.semi-active {
+      background-color: var(--color-warning);
+    }
+
+    .app-nav {
+      display: flex;
+      background-color: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 16px;
+    }
+
+    .nav-item {
+      padding: 12px 10px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .nav-item.active {
+      color: var(--color-primary);
+      border-bottom: 2px solid var(--color-primary);
+    }
+
+    .nav-item:hover:not(.active) {
+      color: var(--color-text);
+    }
+
+    .app-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+    }
+
+    .panel.active {
+      display: flex;
+    }
+
+    /* 首页面板样式 */
+    .stats-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .stat-card {
+      flex: 1;
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .stat-icon.bookmark {
+      background-color: #e0e7ff;
+      color: var(--color-primary);
+    }
+
+    .stat-icon.cloud {
+      background-color: #e0e7ff;
+      color: var(--color-primary);
+    }
+
+    .stat-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .stat-sync {
+      background-color: var(--color-bg-offset);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .stat-sync .stat-icon {
+      margin-bottom: 0;
+      margin-right: 12px;
+    }
+
+    .stat-sync-content {
+      flex: 1;
+      text-align: left;
+    }
+
+    .stat-icon.time {
+      background-color: #f1f5f9;
+      color: var(--color-text-secondary);
+    }
+
+    .stat-value.sync-time {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* 操作按钮容器 */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* 操作按钮样式 */
+    .action-button {
+      display: flex;
+      align-items: center;
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      cursor: pointer;
+      transition: var(--transition);
+      flex: 1;
+      height: 50px;
+    }
+
+    .action-button:hover {
+      background-color: var(--color-bg-offset);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .action-button.upload {
+      border-color: #e0e7ff;
+    }
+
+    .action-button.download {
+      border-color: #d1fae5;
+    }
+
+    .action-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    .action-button.upload .action-icon {
+      background-color: #e0e7ff;
+      color: var(--color-primary);
+    }
+
+    .action-button.download .action-icon {
+      background-color: #d1fae5;
+      color: var(--color-success);
+    }
+
+    .action-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .action-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .action-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .action-desc {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    /* 自动同步选项 */
+    .sync-option {
+      margin-bottom: 16px;
+    }
+
+    .toggle-container {
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .toggle-text {
+      flex: 1;
+    }
+
+    .toggle-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+      font-size: 14px;
+    }
+
+    .toggle-desc {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      margin-left: 12px;
+    }
+
+    .toggle-input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #e2e8f0;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    .toggle-input:checked + .toggle-slider {
+      background-color: var(--color-primary);
+    }
+
+    .toggle-input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+
+    /* 提示框 */
+    .alert {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      display: none;
+      margin-bottom: 12px;
+    }
+
+    .alert-success {
+      background-color: var(--color-success-light);
+      color: var(--color-success);
+    }
+
+    .alert-danger {
+      background-color: var(--color-danger-light);
+      color: var(--color-danger);
+    }
+
+    /* 对比面板样式 */
+    .diff-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .diff-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .diff-stat {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 500;
+      gap: 6px;
+    }
+
+    .diff-stat .icon {
+      width: 14px;
+      height: 14px;
+    }
+    
+    .diff-stat.added {
+      background-color: var(--color-success-light);
+      color: var(--color-success);
+    }
+
+    .diff-stat.deleted {
+      background-color: var(--color-danger-light);
+      color: var(--color-danger);
+    }
+
+    .diff-stat.modified {
+      background-color: var(--color-neutral-light);
+      color: var(--color-neutral);
+    }
+
+    .diff-stat.moved {
+      background-color: var(--color-warning-light);
+      color: var(--color-warning);
+    }
+
+    .diff-list {
+      /* display: flex; */
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      max-height: 350px;
+    }
+
+    .diff-item {
+      background-color: var(--color-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+      transition: var(--transition);
+      margin-bottom: 12px;
+    }
+
+    .diff-item:hover {
+      box-shadow: var(--shadow-sm);
+    }
+
+    .diff-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .diff-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .diff-badge.added {
+      background-color: var(--color-success-light);
+      color: var(--color-success);
+    }
+
+    .diff-badge.deleted {
+      background-color: var(--color-danger-light);
+      color: var(--color-danger);
+    }
+
+    .diff-badge.modified {
+      background-color: var(--color-neutral-light);
+      color: var(--color-neutral);
+    }
+
+    .diff-badge.moved {
+      background-color: var(--color-warning-light);
+      color: var(--color-warning);
+    }
+
+    .diff-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .diff-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .diff-path {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .diff-url {
+      background-color: var(--color-bg-offset);
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+    
+    .diff-changes {
+      margin: 8px 0;
+      font-size: 12px;
+      background-color: var(--color-bg-offset);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+    }
+    
+    .diff-change-row {
+      display: flex;
+      margin-bottom: 4px;
+    }
+    
+    .diff-change-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .diff-change-label {
+      width: 40px;
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
+    }
+    
+    .diff-change-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    
+    .diff-old {
+      text-decoration: line-through;
+      color: var(--color-danger);
+    }
+    
+    .diff-new {
+      color: var(--color-success);
+    }
+    
+    .diff-arrow {
+      color: var(--color-text-secondary);
+      margin: 0 4px;
+    }
+
+    /* 日志面板样式 */
+    .card {
+      background-color: var(--color-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--color-border);
+      background-color: var(--color-bg-offset);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .card-body {
+      padding: 12px;
+    }
+
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .log-item {
+      background-color: var(--color-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      padding: 10px 12px;
+    }
+
+    .log-time {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .log-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 500;
+      margin-right: 6px;
+    }
+
+    .log-badge.add {
+      background-color: var(--color-success-light);
+      color: var(--color-success);
+    }
+
+    .log-badge.delete {
+      background-color: var(--color-danger-light);
+      color: var(--color-danger);
+    }
+
+    .log-badge.change {
+      background-color: var(--color-neutral-light);
+      color: var(--color-neutral);
+    }
+
+    .log-title {
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .log-link {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    .log-link:hover {
+      text-decoration: underline;
+    }
+
+    /* 设置面板样式 */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      transition: var(--transition);
+      background-color: var(--color-bg);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      gap: 6px;
+      outline: none;
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-primary-dark);
+    }
+
+    .btn-secondary {
+      background-color: var(--color-bg-offset);
+      color: var(--color-text);
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--color-border);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+    }
+
+    .icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 0;
+      color: var(--color-text-secondary);
+      text-align: center;
+      flex: 1;
+    }
+
+    .empty-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    .empty-text {
+      font-size: 13px;
+      max-width: 200px;
+    }
+
+    .empty-hint {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-top: 8px;
+      text-align: center;
+      max-width: 200px;
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d1d5db;
+    }
+
+    /* 通用样式 */
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+      color: var(--color-text);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="app-header">
+      <div class="app-title-row">
+        <h1 class="app-title">
+          <img src="images/icon48.png" alt="EasyB" class="app-logo">
+          EasyB 书签同步
+        </h1>
+        <div id="syncStatus" class="app-status active">
+          <span class="status-dot active"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-nav">
+      <div class="nav-item active" data-panel="sync">首页</div>
+      <div class="nav-item" data-panel="diff">对比</div>
+      <div class="nav-item" data-panel="logs">日志</div>
+      <div class="nav-item" data-panel="settings">设置</div>
+    </div>
+
+    <div class="app-content">
+      <!-- 首页面板 -->
+      <div id="syncPanel" class="panel active">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon bookmark">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+              </svg>
+            </div>
+            <div class="stat-label">本地书签</div>
+            <div class="stat-value" id="localBookmarkCount">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon cloud">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+              </svg>
+            </div>
+            <div class="stat-label">云端书签</div>
+            <div class="stat-value" id="cloudBookmarkCount">-</div>
+          </div>
+        </div>
+        <div class="stat-sync">
+          <div class="stat-icon time">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="stat-sync-content">
+            <div class="stat-label">上次同步</div>
+            <div class="stat-value sync-time" id="lastSyncTime">从未同步</div>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <button id="uploadBookmarks" class="action-button upload">
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+            </div>
+            <div class="action-text">
+              <div class="action-title">上传书签</div>
+            </div>
+          </button>
+          
+          <button id="downloadBookmarks" class="action-button download">
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            </div>
+            <div class="action-text">
+              <div class="action-title">下载书签</div>
+            </div>
+          </button>
+        </div>
+        
+        <div class="sync-option">
+          <div class="toggle-container">
+            <label for="autoSyncToggle" class="toggle-label">
+              <div class="toggle-text">
+                <div class="toggle-title">自动同步</div>
+                <div class="toggle-desc">书签变更时自动触发同步</div>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="autoSyncToggle" class="toggle-input">
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <div id="syncError" class="alert alert-danger"></div>
+        <div id="syncSuccess" class="alert alert-success"></div>
+      </div>
+
+      <!-- 对比面板 -->
+      <div id="diffPanel" class="panel">
+        <div class="diff-header-row">
+          <h2 class="section-title">书签对比</h2>
+          <button id="compareBookmarks" class="btn btn-primary">
+            <span class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+              </svg>
+            </span>
+            开始对比
+          </button>
+        </div>
+
+        <div id="diffError" class="alert alert-danger"></div>
+
+        <div id="diffStatsContainer" class="diff-stats">
+          <div class="diff-stat added">
+            <span class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </span>
+            <span id="addedCount">新增: 0</span>
+          </div>
+          <div class="diff-stat deleted">
+            <span class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
+              </svg>
+            </span>
+            <span id="deletedCount">删除: 0</span>
+          </div>
+          <div class="diff-stat modified">
+            <span class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+            </span>
+            <span id="modifiedCount">修改: 0</span>
+          </div>
+          <div class="diff-stat moved">
+            <span class="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9.75h4.875a2.625 2.625 0 010 5.25H12M8.25 9.75L10.5 7.5M8.25 9.75L10.5 12m2.25 3.75h3.375c1.452 0 2.625-1.173 2.625-2.625S17.577 9.75 16.125 9.75H13.5m-3.75 7.5L12 19.5m-3.75-7.5L12 9.75" />
+              </svg>
+            </span>
+            <span id="movedCount">移动: 0</span>
+          </div>
+        </div>
+
+        <div id="diffContent" class="diff-list">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+              </svg>
+            </div>
+            <p class="empty-text">点击"开始对比"按钮查看本地与云端书签的差异</p>
+            <p class="empty-hint">对比功能可以帮助你查看本地和云端书签的区别，<br>包括新增、删除、修改和移动的书签</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日志面板 -->
+      <div id="logsPanel" class="panel">
+        <div class="card">
+          <div class="card-header">
+            <span>操作日志</span>
+            <button id="clearLogs" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">
+              清除日志
+            </button>
+          </div>
+          <div class="card-body">
+            <div id="logContainer" class="log-list">
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                  </svg>
+                </div>
+                <p class="empty-text">暂无操作日志</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 设置面板 -->
+      <div id="settingsPanel" class="panel">
+        <div class="card">
+          <div class="card-header">GitHub 设置</div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" for="tokenInput">GitHub Personal Access Token</label>
+              <input type="password" id="tokenInput" class="form-control" placeholder="输入你的 GitHub Token">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="gistInput">Gist ID（可选）</label>
+              <input type="text" id="gistInput" class="form-control" placeholder="留空将创建新的 Gist">
+            </div>
+            <div class="btn-group">
+              <button id="saveSettings" class="btn btn-primary">
+                <span class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </span>
+                保存设置
+              </button>
+            </div>
+            <div id="settingsError" class="alert alert-danger"></div>
+            <div id="settingsSuccess" class="alert alert-success"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="gist.js" type="module"></script>
+  <script src="popup.js" type="module"></script>
+</body>
+</html> 

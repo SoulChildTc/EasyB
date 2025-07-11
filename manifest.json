@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "EasyB",
+  "version": "1.0",
+  "description": "轻松在多浏览器之间同步书签，使用 GitHub Gist 作为同步服务",
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "notifications",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://api.github.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+} 
