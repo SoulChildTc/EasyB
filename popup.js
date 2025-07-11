@@ -8,8 +8,29 @@ function showToast(type, message) {
     msgSpan.textContent = message;
   }
   el.classList.add('show');
-  setTimeout(() => {
-    el.classList.remove('show');
+
+  // 先移除之前的事件和定时器
+  if (el._toastTimer) {
+    clearTimeout(el._toastTimer);
+    el._toastTimer = null;
+  }
+  if (el._toastMouseHandler) {
+    el.removeEventListener('mouseenter', el._toastMouseHandler.enter);
+    el.removeEventListener('mouseleave', el._toastMouseHandler.leave);
+  }
+
+  // 只有鼠标未移入时才自动关闭
+  let shouldAutoClose = true;
+  el._toastMouseHandler = {
+    enter: () => { shouldAutoClose = false; if (el._toastTimer) { clearTimeout(el._toastTimer); el._toastTimer = null; } },
+    leave: () => { shouldAutoClose = true; el._toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000); }
+  };
+  el.addEventListener('mouseenter', el._toastMouseHandler.enter);
+  el.addEventListener('mouseleave', el._toastMouseHandler.leave);
+
+  // 初始3秒后自动关闭（如果鼠标没移入）
+  el._toastTimer = setTimeout(() => {
+    if (shouldAutoClose) el.classList.remove('show');
   }, 3000);
 }
 
@@ -217,7 +238,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-      showToast('success', '书签上传成功');
       uploadBtn.disabled = true;
       
       const bookmarks = await chrome.bookmarks.getTree();
@@ -233,7 +253,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 更新统计信息
       await updateStats();
     } catch (error) {
-      showToast('error', '上传失败: ' + error.message);
+      let msg = '上传失败: ' + (error && error.message ? error.message : error);
+      showToast('error', msg);
     } finally {
       uploadBtn.disabled = false;
     }
@@ -246,9 +267,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    let prevAutoSync = settings.autoSync;
     try {
-      showToast('success', '书签下载成功');
       downloadBtn.disabled = true;
+
+      // 下载前，关闭自动同步
+      await chrome.storage.local.set({ autoSync: false });
+      settings.autoSync = false;
+      chrome.runtime.sendMessage({ action: 'updateAutoSync', autoSync: false });
 
       const bookmarks = await gistApi.downloadBookmarks(settings.githubToken, settings.gistId);
       if (!bookmarks) {
@@ -273,6 +299,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       showToast('error', '下载失败: ' + error.message);
     } finally {
+      // 下载后，恢复自动同步
+      await chrome.storage.local.set({ autoSync: prevAutoSync });
+      settings.autoSync = prevAutoSync;
+      chrome.runtime.sendMessage({ action: 'updateAutoSync', autoSync: prevAutoSync });
       downloadBtn.disabled = false;
     }
   });

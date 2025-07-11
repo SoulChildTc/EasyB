@@ -45,7 +45,12 @@ const gistApi = {
         });
 
         if (!response.ok) {
-          throw new Error('更新 Gist 失败');
+          let errorMsg = '未知错误';
+          try {
+            const data = await response.json();
+            if (data && data.message) errorMsg = data.message;
+          } catch {}
+          throw new Error(errorMsg);
         }
       } else {
         // 创建新的 Gist
@@ -64,7 +69,12 @@ const gistApi = {
         });
 
         if (!response.ok) {
-          throw new Error('创建 Gist 失败');
+          let errorMsg = '未知错误';
+          try {
+            const data = await response.json();
+            if (data && data.message) errorMsg = data.message;
+          } catch {}
+          throw new Error(errorMsg);
         }
 
         const data = await response.json();

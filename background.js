@@ -2,6 +2,8 @@ import gistApi from './gist.js';
 
 // 初始化变量
 let isAutoSyncEnabled = false;
+let syncTimeout = null;  // 新增：同步防抖定时器
+const SYNC_DELAY = 60 * 1000; // 1分钟
 
 // 初始化时加载自动同步设置
 async function initAutoSync() {
@@ -34,25 +36,34 @@ async function addLog(type, data) {
   await chrome.storage.local.set({ logs: newLogs });
 }
 
+// 书签事件触发同步的防抖函数
+function scheduleSync() {
+  if (syncTimeout) clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => {
+    syncBookmarks();
+    syncTimeout = null;
+  }, SYNC_DELAY);
+}
+
 // 监听书签变化
 chrome.bookmarks.onCreated.addListener(async (id, bookmark) => {
   await addLog('add', bookmark);
   if (isAutoSyncEnabled) {
-    await syncBookmarks();
+    scheduleSync();
   }
 });
 
 chrome.bookmarks.onRemoved.addListener(async (id, removeInfo) => {
   await addLog('delete', removeInfo);
   if (isAutoSyncEnabled) {
-    await syncBookmarks();
+    scheduleSync();
   }
 });
 
 chrome.bookmarks.onChanged.addListener(async (id, changeInfo) => {
   await addLog('change', changeInfo);
   if (isAutoSyncEnabled) {
-    await syncBookmarks();
+    scheduleSync();
   }
 });
 

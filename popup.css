@@ -300,6 +300,12 @@ body {
   color: #047857;
 }
 
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .action-icon {
   width: 30px;
   height: 30px;
@@ -429,8 +435,8 @@ body {
   top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  min-width: 140px;
-  max-width: 60vw;
+  width: max-content;
+  max-width: 90vw;
   z-index: 9999;
   padding: 8px 18px;
   border-radius: 6px;
@@ -442,6 +448,13 @@ body {
   transition: opacity 0.3s, top 0.3s;
   display: block;
   padding-right: 28px; /* 给关闭按钮留空间 */
+  word-break: break-all;
+  white-space: pre-line;
+}
+
+/* 鼠标移入时保持显示 */
+.alert:hover {
+  opacity: 1 !important;
 }
 
 .alert.show {
