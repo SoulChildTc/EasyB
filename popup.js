@@ -1,5 +1,15 @@
 import gistApi from './gist.js';
 
+// 在文件顶部添加 showToast 函数，使其为全局可用
+function showToast(type, message) {
+  const el = document.getElementById(type === 'success' ? 'syncSuccess' : 'syncError');
+  el.textContent = message;
+  el.classList.add('show');
+  setTimeout(() => {
+    el.classList.remove('show');
+  }, 3000);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // 获取 DOM 元素
   const uploadBtn = document.getElementById('uploadBookmarks');
@@ -193,14 +203,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 上传书签
   uploadBtn.addEventListener('click', async () => {
     if (!settings.githubToken) {
-      syncError.textContent = '请先配置 GitHub Token';
-      syncError.style.display = 'block';
+      showToast('error', '请先配置 GitHub Token');
       return;
     }
 
     try {
-      syncError.style.display = 'none';
-      syncSuccess.style.display = 'none';
+      showToast('success', '书签上传成功');
       uploadBtn.disabled = true;
       
       const bookmarks = await chrome.bookmarks.getTree();
@@ -211,15 +219,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       await chrome.storage.local.set({ lastSyncTime: now });
       settings.lastSyncTime = now;
       
-      syncSuccess.textContent = '书签上传成功';
-      syncSuccess.style.display = 'block';
-      setTimeout(() => syncSuccess.style.display = 'none', 3000);
+      showToast('success', '书签上传成功');
 
       // 更新统计信息
       await updateStats();
     } catch (error) {
-      syncError.textContent = `上传失败: ${error.message}`;
-      syncError.style.display = 'block';
+      showToast('error', '上传失败: ' + error.message);
     } finally {
       uploadBtn.disabled = false;
     }
@@ -228,14 +233,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 下载书签
   downloadBtn.addEventListener('click', async () => {
     if (!settings.githubToken) {
-      syncError.textContent = '请先配置 GitHub Token';
-      syncError.style.display = 'block';
+      showToast('error', '请先配置 GitHub Token');
       return;
     }
 
     try {
-      syncError.style.display = 'none';
-      syncSuccess.style.display = 'none';
+      showToast('success', '书签下载成功');
       downloadBtn.disabled = true;
 
       const bookmarks = await gistApi.downloadBookmarks(settings.githubToken, settings.gistId);
@@ -254,15 +257,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       await chrome.storage.local.set({ lastSyncTime: now });
       settings.lastSyncTime = now;
       
-      syncSuccess.textContent = '书签下载成功';
-      syncSuccess.style.display = 'block';
-      setTimeout(() => syncSuccess.style.display = 'none', 3000);
+      showToast('success', '书签下载成功');
 
       // 更新统计信息
       await updateStats();
     } catch (error) {
-      syncError.textContent = `下载失败: ${error.message}`;
-      syncError.style.display = 'block';
+      showToast('error', '下载失败: ' + error.message);
     } finally {
       downloadBtn.disabled = false;
     }
