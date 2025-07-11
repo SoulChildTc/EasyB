@@ -54,7 +54,7 @@ chrome.bookmarks.onCreated.addListener(async (id, bookmark) => {
 });
 
 chrome.bookmarks.onRemoved.addListener(async (id, removeInfo) => {
-  await addLog('delete', removeInfo);
+  await addLog('delete', removeInfo.node);
   if (isAutoSyncEnabled) {
     scheduleSync();
   }
