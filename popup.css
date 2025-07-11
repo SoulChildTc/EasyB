@@ -72,6 +72,21 @@ body {
   flex-shrink: 0;
 }
 
+.app-title a {
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 20px;
+  background: linear-gradient(90deg, #4f8cff 0%, #b266ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: opacity 0.2s;
+}
+.app-title a:hover {
+  opacity: 0.8;
+  text-shadow: 0 2px 8px rgba(79,140,255,0.15);
+}
+
 .app-logo {
   width: 24px;
   height: 24px;

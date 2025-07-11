@@ -1,0 +1,24 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4f8cff"/>
+      <stop offset="100%" stop-color="#b266ff"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#aee7ff"/>
+      <stop offset="100%" stop-color="#7f9cff"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f8cff"/>
+      <stop offset="100%" stop-color="#aee7ff"/>
+    </linearGradient>
+  </defs>
+  <!-- 柔和渐变圆环描边 -->
+  <circle cx="64" cy="64" r="56" fill="none" stroke="url(#g1)" stroke-width="7"/>
+  <!-- 仅加宽后的渐变书签描边，底部V形保持不变 -->
+  <path d="M44 48a8 8 0 0 1 8-8h24a8 8 0 0 1 8 8v40a7 7 0 0 1-10.5 5.8l-9.5-6.3-9.5 6.3A7 7 0 0 1 44 88V48z" fill="none" stroke="url(#g1)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 更小巧圆角的渐变三角形 -->
+  <polygon points="54,54 62,54 54,62" fill="url(#g2)" rx="2"/>
+  <!-- 书签中心渐变闪电符号 -->
+  <polygon points="66,60 60,72 66,72 62,80 74,66 68,66 72,60" fill="url(#g3)"/>
+</svg> 
