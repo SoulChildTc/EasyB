@@ -248,14 +248,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw new Error('未找到云端书签数据');
       }
 
-      // 删除所有现有书签
+      // 获取本地根节点
       const existingBookmarks = await chrome.bookmarks.getTree();
-      for (const node of existingBookmarks[0].children) {
-        await chrome.bookmarks.removeTree(node.id);
-      }
-
-      // 导入下载的书签
-      await importBookmarks(bookmarks[0].children);
+      const localRoots = existingBookmarks[0].children;
+      // 只需调用一次importBookmarks，内部完成根节点一一对应和递归导入
+      await importBookmarks(bookmarks[0].children, localRoots);
       
       // 更新上次同步时间
       const now = new Date().getTime();
@@ -534,23 +531,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     syncStatus.appendChild(document.createTextNode(statusText));
   }
 
-  // 导入书签的辅助函数
-  async function importBookmarks(nodes, parentId = null) {
-    for (const node of nodes) {
-      if (node.children) {
-        // 创建文件夹
-        const folder = await chrome.bookmarks.create({
-          parentId: parentId,
-          title: node.title
-        });
-        await importBookmarks(node.children, folder.id);
-      } else {
-        // 创建书签
-        await chrome.bookmarks.create({
-          parentId: parentId,
-          title: node.title,
-          url: node.url
-        });
+  // 导入书签
+  async function importBookmarks(nodes, localRoots = null, parentId = null) {
+    if (localRoots) {
+      // 根节点一一对应
+      for (const remoteRoot of nodes) {
+        const localRoot = localRoots.find(r => r.title === remoteRoot.title);
+        let targetId;
+        if (localRoot) {
+          // 清空本地根节点下内容
+          if (localRoot.children) {
+            for (const child of localRoot.children) {
+              await chrome.bookmarks.removeTree(child.id);
+            }
+          }
+          targetId = localRoot.id;
+        } else {
+          // 新建根节点
+          const newRoot = await chrome.bookmarks.create({ title: remoteRoot.title });
+          targetId = newRoot.id;
+        }
+        // 递归导入
+        await importBookmarks(remoteRoot.children, null, targetId);
+      }
+    } else {
+      // 普通递归导入
+      for (const node of nodes) {
+        if (node.children) {
+          const folder = await chrome.bookmarks.create({
+            parentId: parentId,
+            title: node.title
+          });
+          await importBookmarks(node.children, null, folder.id);
+        } else {
+          await chrome.bookmarks.create({
+            parentId: parentId,
+            title: node.title,
+            url: node.url
+          });
+        }
       }
     }
   }
