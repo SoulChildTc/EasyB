@@ -920,3 +920,11 @@ body {
   position: relative;
   top: 3px;
 } 
+
+.clickable {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.clickable:hover {
+  color: #007aff;
+} 

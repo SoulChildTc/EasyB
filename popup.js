@@ -606,4 +606,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const logs = (await chrome.storage.local.get('logs')).logs || [];
   updateLogs(logs);
   await updateStats();
+
+  // 云端书签数量点击刷新
+  const cloudCountEl = document.getElementById('cloudBookmarkCount');
+  if (cloudCountEl) {
+    cloudCountEl.addEventListener('click', async () => {
+      const old = cloudCountEl.textContent;
+      cloudCountEl.innerHTML = loadingSvg;
+      await updateStats();
+      // 若刷新失败，updateStats 已处理显示
+    });
+  }
 }); 
