@@ -1,5 +1,3 @@
-import gistApi from './gist.js';
-
 const STALE_DAYS = 7;
 
 async function addLog(type, data) {
@@ -28,11 +26,13 @@ chrome.bookmarks.onChanged.addListener(async (id, changeInfo) => {
 });
 
 async function checkSyncStale() {
-  const { githubToken, gistId, lastSyncTime } = await chrome.storage.local.get(['githubToken', 'gistId', 'lastSyncTime']);
+  const { githubToken, gistId, lastSyncTime, notifiedStale } = await chrome.storage.local.get(['githubToken', 'gistId', 'lastSyncTime', 'notifiedStale']);
   if (!githubToken || !gistId || !lastSyncTime) return;
+  if (notifiedStale) return;
 
   const days = (Date.now() - lastSyncTime) / 86400000;
   if (days >= STALE_DAYS) {
+    await chrome.storage.local.set({ notifiedStale: true });
     chrome.notifications.create({
       type: 'basic',
       iconUrl: 'images/icon128.png',
@@ -50,7 +50,10 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
   }
 });
 
-chrome.alarms.create('checkSyncStale', { periodInMinutes: 360 });
+const existingAlarm = await chrome.alarms.get('checkSyncStale');
+if (!existingAlarm) {
+  chrome.alarms.create('checkSyncStale', { periodInMinutes: 360 });
+}
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'checkSyncStale') {

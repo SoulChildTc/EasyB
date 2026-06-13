@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       // 保存设置
       await chrome.storage.local.set({ githubToken: token, gistId });
-      settings = { githubToken: token, gistId };
+      settings = { ...settings, githubToken: token, gistId };
       showToast('success', '设置已保存');
       updateSyncStatus(true);
       setTimeout(() => {
@@ -238,6 +238,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const now = new Date().getTime();
       await chrome.storage.local.set({ lastSyncTime: now });
       settings.lastSyncTime = now;
+      await chrome.storage.local.remove('notifiedStale');
+      // uploadBookmarks 可能创建了新的 Gist，刷新 settings
+      const { gistId: newGistId } = await chrome.storage.local.get('gistId');
+      if (newGistId) settings.gistId = newGistId;
       
       showToast('success', '书签上传成功');
 
@@ -275,6 +279,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const now = new Date().getTime();
       await chrome.storage.local.set({ lastSyncTime: now });
       settings.lastSyncTime = now;
+      await chrome.storage.local.remove('notifiedStale');
       
       showToast('success', '书签下载成功');
 
@@ -353,13 +358,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
       diffContent.innerHTML = html;
-      // 添加点击展开/收起事件
-      document.querySelectorAll('.diff-item-header').forEach(header => {
-        header.addEventListener('click', () => {
-          const item = header.parentElement;
-          item.classList.toggle('expanded');
-        });
-      });
     } catch (error) {
       diffError.textContent = `对比失败: ${error.message}`;
       diffError.style.display = 'block';

@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3] - 2026-06-13
+
+### Fixed
+- alarm 每次 SW 重启被重置，导致 checkSyncStale 可能永不触发
+- 超过 7 天未同步时每 6 小时重复弹通知，改为只弹一次
+- 保存设置时 settings 对象丢失 lastSyncTime，同步时间不显示
+- 首次上传后 Gist ID 未同步到 popup，云端书签数不显示
+- diff 面板展开/收起选择器错配，点击无效果
+
+### Changed
+- 清理冗余代码：重复加载 gist.js、Google Fonts preconnect、未使用的 empty-hint CSS
+- notification 使用 requireInteraction 保持可见，按钮可打开扩展 popup
+
 ## [1.2] - 2026-06-13
 
 ### Removed
