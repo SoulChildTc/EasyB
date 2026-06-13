@@ -66,33 +66,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const syncStatus = document.getElementById('syncStatus');
   const diffContent = document.getElementById('diffContent');
   const diffError = document.getElementById('diffError');
-  const autoSyncToggle = document.getElementById('autoSyncToggle');
 
   // 初始化设置
-  let settings = await chrome.storage.local.get(['githubToken', 'gistId', 'lastSyncTime', 'autoSync']);
+  let settings = await chrome.storage.local.get(['githubToken', 'gistId', 'lastSyncTime']);
   if (settings.githubToken) {
     tokenInput.value = settings.githubToken;
     gistInput.value = settings.gistId || '';
-    updateSyncStatus(true);
-  } else {
-    updateSyncStatus(false);
   }
-
-  // 初始化自动同步开关状态
-  autoSyncToggle.checked = settings.autoSync === true;
-
-  // 监听自动同步开关变化
-  autoSyncToggle.addEventListener('change', async () => {
-    const autoSync = autoSyncToggle.checked;
-    await chrome.storage.local.set({ autoSync });
-    settings.autoSync = autoSync;
-    
-    // 通知后台脚本更新自动同步状态
-    chrome.runtime.sendMessage({ action: 'updateAutoSync', autoSync });
-    
-    // 更新同步状态显示
-    updateSyncStatus(!!settings.githubToken);
-  });
+  updateSyncStatus(!!settings.githubToken);
 
   // 更新统计信息
   async function updateStats() {
@@ -277,14 +258,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    let prevAutoSync = settings.autoSync;
     try {
       downloadBtn.disabled = true;
-
-      // 下载前，关闭自动同步
-      await chrome.storage.local.set({ autoSync: false });
-      settings.autoSync = false;
-      chrome.runtime.sendMessage({ action: 'updateAutoSync', autoSync: false });
 
       const bookmarks = await gistApi.downloadBookmarks(settings.githubToken, settings.gistId);
       if (!bookmarks) {
@@ -294,7 +269,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 获取本地根节点
       const existingBookmarks = await chrome.bookmarks.getTree();
       const localRoots = existingBookmarks[0].children;
-      // 只需调用一次importBookmarks，内部完成根节点一一对应和递归导入
       await importBookmarks(bookmarks[0].children, localRoots);
       
       // 更新上次同步时间
@@ -309,10 +283,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       showToast('error', '下载失败: ' + error.message);
     } finally {
-      // 下载后，恢复自动同步
-      await chrome.storage.local.set({ autoSync: prevAutoSync });
-      settings.autoSync = prevAutoSync;
-      chrome.runtime.sendMessage({ action: 'updateAutoSync', autoSync: prevAutoSync });
       downloadBtn.disabled = false;
     }
   });
@@ -536,27 +506,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 更新同步状态显示
   function updateSyncStatus(isActive) {
     const statusDot = syncStatus.querySelector('.status-dot') || document.createElement('span');
-    const autoSyncEnabled = settings.autoSync === true;
     
-    // 状态点的类名取决于是否有效配置和是否开启自动同步
-    statusDot.className = `status-dot ${isActive ? (autoSyncEnabled ? 'active' : 'semi-active') : 'inactive'}`;
+    statusDot.className = `status-dot ${isActive ? 'active' : 'inactive'}`;
+    syncStatus.className = `app-status ${isActive ? 'active' : 'inactive'}`;
     
-    // 整体状态类名
-    syncStatus.className = `app-status ${isActive ? (autoSyncEnabled ? 'active' : 'semi-active') : 'inactive'}`;
-    
-    // 清除内容并添加新内容
     syncStatus.textContent = '';
     syncStatus.appendChild(statusDot);
-    
-    // 根据状态显示不同文本
-    let statusText;
-    if (!isActive) {
-      statusText = '同步未配置';
-    } else {
-      statusText = autoSyncEnabled ? '自动同步已开启' : '自动同步已关闭';
-    }
-    
-    syncStatus.appendChild(document.createTextNode(statusText));
+    syncStatus.appendChild(document.createTextNode(isActive ? '已配置' : '未配置'));
   }
 
   // 导入书签

@@ -1,28 +1,7 @@
 import gistApi from './gist.js';
 
-// 初始化变量
-let isAutoSyncEnabled = false;
-let syncTimeout = null;  // 新增：同步防抖定时器
-const SYNC_DELAY = 30 * 1000; // 30秒
+const STALE_DAYS = 7;
 
-// 初始化时加载自动同步设置
-async function initAutoSync() {
-  const { autoSync } = await chrome.storage.local.get('autoSync');
-  isAutoSyncEnabled = autoSync === true;
-  console.log('自动同步状态:', isAutoSyncEnabled ? '已开启' : '已关闭');
-}
-
-// 监听消息
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'updateAutoSync') {
-    isAutoSyncEnabled = message.autoSync;
-    console.log('自动同步状态已更新:', isAutoSyncEnabled ? '已开启' : '已关闭');
-  }
-  sendResponse({ success: true });
-  return true;
-});
-
-// 工具函数：添加日志
 async function addLog(type, data) {
   const log = {
     type,
@@ -32,68 +11,49 @@ async function addLog(type, data) {
   };
 
   const { logs = [] } = await chrome.storage.local.get('logs');
-  const newLogs = [log, ...logs].slice(0, 100); // 最多保留 100 条日志
+  const newLogs = [log, ...logs].slice(0, 100);
   await chrome.storage.local.set({ logs: newLogs });
 }
 
-// 书签事件触发同步的防抖函数
-function scheduleSync() {
-  if (syncTimeout) clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(() => {
-    syncBookmarks();
-    syncTimeout = null;
-  }, SYNC_DELAY);
-}
-
-// 监听书签变化
 chrome.bookmarks.onCreated.addListener(async (id, bookmark) => {
   await addLog('add', bookmark);
-  if (isAutoSyncEnabled) {
-    scheduleSync();
-  }
 });
 
 chrome.bookmarks.onRemoved.addListener(async (id, removeInfo) => {
   await addLog('delete', removeInfo.node);
-  if (isAutoSyncEnabled) {
-    scheduleSync();
-  }
 });
 
 chrome.bookmarks.onChanged.addListener(async (id, changeInfo) => {
   await addLog('change', changeInfo);
-  if (isAutoSyncEnabled) {
-    scheduleSync();
-  }
 });
 
-// 同步书签到 Gist
-async function syncBookmarks() {
-  try {
-    const { githubToken, gistId } = await chrome.storage.local.get(['githubToken', 'gistId']);
-    if (!githubToken) return;
+async function checkSyncStale() {
+  const { githubToken, gistId, lastSyncTime } = await chrome.storage.local.get(['githubToken', 'gistId', 'lastSyncTime']);
+  if (!githubToken || !gistId || !lastSyncTime) return;
 
-    console.log('开始自动同步书签...');
-    const bookmarks = await chrome.bookmarks.getTree();
-    await gistApi.uploadBookmarks(bookmarks, githubToken, gistId);
-    
-    // 更新上次同步时间
-    const now = new Date().getTime();
-    await chrome.storage.local.set({ lastSyncTime: now });
-    
-    console.log('自动同步完成');
-  } catch (error) {
-    console.error('自动同步失败:', error);
+  const days = (Date.now() - lastSyncTime) / 86400000;
+  if (days >= STALE_DAYS) {
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'images/icon128.png',
+      title: 'EasyB',
+      message: `已经 ${Math.floor(days)} 天没有同步书签了，是否去同步？`,
+      buttons: [{ title: '去同步' }],
+      requireInteraction: true
+    });
   }
 }
 
-// 初始化
-initAutoSync();
+chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+  if (buttonIndex === 0) {
+    chrome.action.openPopup();
+  }
+});
 
-// // 设置定期同步（每小时）
-// chrome.alarms.create('syncBookmarks', { periodInMinutes: 60 });
-// chrome.alarms.onAlarm.addListener((alarm) => {
-//   if (alarm.name === 'syncBookmarks') {
-//     syncBookmarks();
-//   }
-// }); 
+chrome.alarms.create('checkSyncStale', { periodInMinutes: 360 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'checkSyncStale') {
+    checkSyncStale();
+  }
+});

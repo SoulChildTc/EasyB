@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2] - 2026-06-13
+
+### Removed
+- 移除自动同步功能（MV3 Service Worker 无法可靠支持）
+
+### Added
+- 超过 7 天未同步时，Chrome 通知提醒，点击可打开扩展
+
+### Changed
+- 下载按钮代码简化，移除 auto-sync 相关控制逻辑
+
 ## [1.1] - 2026-06-13
 
 ### Fixed
