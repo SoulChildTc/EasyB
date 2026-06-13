@@ -350,11 +350,6 @@ body {
   font-size: 14px;
 }
 
-.action-desc {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-
 /* 提示框 */
 .alert {
   position: fixed;
