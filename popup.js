@@ -564,7 +564,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (localRoots) {
       // 根节点一一对应
       for (const remoteRoot of nodes) {
-        const localRoot = localRoots.find(r => r.title === remoteRoot.title);
+        const localRoot = localRoots.find(r => r.id === remoteRoot.id) ||
+                          localRoots.find(r => r.title === remoteRoot.title);
         let targetId;
         if (localRoot) {
           // 清空本地根节点下内容

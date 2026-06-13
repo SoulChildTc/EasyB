@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "EasyB",
-  "version": "1.0",
+  "version": "1.1",
   "description": "轻松在多浏览器之间同步书签，使用 GitHub Gist 作为同步服务",
   "permissions": [
     "bookmarks",
