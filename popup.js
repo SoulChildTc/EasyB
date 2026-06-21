@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const downloadBtn = document.getElementById('downloadBookmarks');
   const saveSettingsBtn = document.getElementById('saveSettings');
   const tokenInput = document.getElementById('tokenInput');
-  const gistInput = document.getElementById('gistInput');
   const clearLogsBtn = document.getElementById('clearLogs');
   const logContainer = document.getElementById('logContainer');
   const syncStatus = document.getElementById('syncStatus');
@@ -71,7 +70,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   let settings = await chrome.storage.local.get(['githubToken', 'gistId', 'lastSyncTime']);
   if (settings.githubToken) {
     tokenInput.value = settings.githubToken;
-    gistInput.value = settings.gistId || '';
   }
   updateSyncStatus(!!settings.githubToken);
 
@@ -177,7 +175,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 保存设置
   saveSettingsBtn.addEventListener('click', async () => {
     const token = tokenInput.value.trim();
-    const gistId = gistInput.value.trim();
 
     if (!token) {
       showToast('error', '请输入 GitHub Token');
@@ -195,10 +192,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!isValid) {
         throw new Error('无效的 GitHub Token');
       }
-      // 保存设置
+      // 自动发现已有 Gist
+      let gistId = await gistApi.findGistByFilename(token, 'easyb.json');
+      // 保存设置（gistId 可能为 null，首次上传时会自动创建）
       await chrome.storage.local.set({ githubToken: token, gistId });
       settings = { ...settings, githubToken: token, gistId };
-      showToast('success', '设置已保存');
+      showToast('success', gistId ? '设置已保存，已关联已有 Gist' : '设置已保存');
       updateSyncStatus(true);
       setTimeout(() => {
         // 保存成功后切换回首页
@@ -220,6 +219,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveSettingsBtn.innerHTML = originalText;
     }
   });
+
+  // 确保 gistId 已就绪（自动发现）
+  async function ensureGistId() {
+    if (!settings.gistId) {
+      const found = await gistApi.findGistByFilename(settings.githubToken, 'easyb.json');
+      if (found) {
+        settings.gistId = found;
+        await chrome.storage.local.set({ gistId: found });
+      }
+    }
+    return settings.gistId;
+  }
 
   // 上传书签
   uploadBtn.addEventListener('click', async () => {
@@ -265,6 +276,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       downloadBtn.disabled = true;
 
+      if (!(await ensureGistId())) {
+        throw new Error('未找到云端书签，请先上传');
+      }
+
       const bookmarks = await gistApi.downloadBookmarks(settings.githubToken, settings.gistId);
       if (!bookmarks) {
         throw new Error('未找到云端书签数据');
@@ -294,8 +309,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 对比书签（自动触发，无需按钮）
   async function autoCompareBookmarks() {
-    if (!settings.githubToken || !settings.gistId) {
-      diffError.textContent = '请先配置 GitHub Token 和完成一次同步';
+    if (!settings.githubToken) {
+      diffError.textContent = '请先配置 GitHub Token';
+      diffError.style.display = 'block';
+      return;
+    }
+
+    if (!(await ensureGistId())) {
+      diffError.textContent = '未找到云端书签，请先上传';
       diffError.style.display = 'block';
       return;
     }

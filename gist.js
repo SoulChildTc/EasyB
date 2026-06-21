@@ -24,6 +24,37 @@ const gistApi = {
     }
   },
 
+  // 按文件名搜索用户的 Gist，返回第一个匹配的 Gist ID
+  async findGistByFilename(token, filename) {
+    const headers = {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json'
+    };
+
+    // 遍历多页，最多 3 页（每页 100 条）
+    for (let page = 1; page <= 3; page++) {
+      const response = await fetch(
+        `https://api.github.com/gists?per_page=100&page=${page}`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error('获取 Gist 列表失败');
+      }
+
+      const gists = await response.json();
+      if (gists.length === 0) break;
+
+      for (const gist of gists) {
+        if (gist.files && gist.files[filename]) {
+          return gist.id;
+        }
+      }
+    }
+
+    return null;
+  },
+
   // 上传书签到 Gist
   async uploadBookmarks(bookmarks, token, gistId) {
     // 保留完整的书签树结构，包括 ID
