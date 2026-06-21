@@ -44,7 +44,7 @@ body {
 .app {
   display: flex;
   flex-direction: column;
-  height: 500px;
+  height: 400px;
 }
 
 .app-header {
@@ -593,7 +593,7 @@ body {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .card-header {
